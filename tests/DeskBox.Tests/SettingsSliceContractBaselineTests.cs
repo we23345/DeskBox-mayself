@@ -137,6 +137,9 @@ public sealed class SettingsSliceContractBaselineTests
         Assert.Equal(100, s.WidgetCompactExpandDelayMs);
         Assert.Equal(200, s.WidgetCompactCollapseDelayMs);
         Assert.Equal("FollowWidget", s.WidgetCompactMediaCornerMode);
+        Assert.Equal(string.Empty, s.WidgetCompactFontFamily);
+        Assert.Equal(0d, s.WidgetCompactFontSize);
+        Assert.Equal("Normal", s.WidgetCompactFontWeight);
         Assert.Equal("Color", s.WidgetTitleIconMode);
         Assert.True(s.DoubleClickToOpen);
         Assert.Equal("Explorer", s.FileWidgetFolderOpenBehavior);
@@ -389,6 +392,9 @@ public sealed class SettingsSliceContractBaselineTests
         "widgetCompactExpandDelayMs",
         "widgetCompactCollapseDelayMs",
         "widgetCompactMediaCornerMode",
+        "widgetCompactFontFamily",
+        "widgetCompactFontSize",
+        "widgetCompactFontWeight",
         "widgetTitleIconMode",
         "doubleClickToOpen",
         "fileWidgetFolderOpenBehavior",

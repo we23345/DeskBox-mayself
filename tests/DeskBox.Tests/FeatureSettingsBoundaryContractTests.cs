@@ -76,7 +76,7 @@ public sealed class FeatureSettingsBoundaryContractTests
         // bar arrangement, compact animation plus duration, hover delays,
         // compact media corner) writes through CapsuleSettingsCoordinator.
         Regex capsuleWrite = new(
-            @"\b(?:_settingsService\s*\.\s*Settings|settings)\s*\.\s*(?:WidgetShell\s*\.\s*)?(?:WidgetCollapseBehavior|WidgetCompactContentMode|WidgetCompactHideSensitiveContent|WidgetCompactWidthMode|WidgetCompactExpansionDirection|WidgetCapsuleArrangementMode|WidgetCapsuleBarPlacement|WidgetCapsuleBarDirection|WidgetCapsuleBarSpacing|WidgetCompactAnimationEffect|WidgetCompactAnimationDurationMs|WidgetCompactExpandDelayMs|WidgetCompactCollapseDelayMs|WidgetCompactMediaCornerMode)\s*=(?!=)");
+            @"\b(?:_settingsService\s*\.\s*Settings|settings)\s*\.\s*(?:WidgetShell\s*\.\s*)?(?:WidgetCollapseBehavior|WidgetCompactContentMode|WidgetCompactHideSensitiveContent|WidgetCompactWidthMode|WidgetCompactExpansionDirection|WidgetCapsuleArrangementMode|WidgetCapsuleBarPlacement|WidgetCapsuleBarDirection|WidgetCapsuleBarSpacing|WidgetCompactAnimationEffect|WidgetCompactAnimationDurationMs|WidgetCompactExpandDelayMs|WidgetCompactCollapseDelayMs|WidgetCompactMediaCornerMode|WidgetCompactFontFamily|WidgetCompactFontSize|WidgetCompactFontWeight)\s*=(?!=)");
         // Batch 34: the interaction section (autostart reflection, update
         // auto-check, open method, file-item context menu, resize snap plus
         // spacing, show-desktop visibility, widget layer mode, hover buttons

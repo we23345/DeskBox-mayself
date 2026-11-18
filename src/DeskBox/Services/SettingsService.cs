@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -202,6 +202,12 @@ public sealed class SettingsService
     public const int SensitiveWidgetCompactCollapseDelayMs = CapsuleOptionKinds.SensitiveCollapseDelayMs;
     public const int PreventAccidentalWidgetCompactExpandDelayMs = CapsuleOptionKinds.PreventAccidentalExpandDelayMs;
     public const int PreventAccidentalWidgetCompactCollapseDelayMs = CapsuleOptionKinds.PreventAccidentalCollapseDelayMs;
+    public const double WidgetCompactFontSizeAuto = CapsuleOptionKinds.CompactFontSizeAuto;
+    public const double MinWidgetCompactFontSize = CapsuleOptionKinds.MinCompactFontSize;
+    public const double MaxWidgetCompactFontSize = CapsuleOptionKinds.MaxCompactFontSize;
+    public const string WidgetCompactFontWeightNormal = CapsuleOptionKinds.CompactFontWeightNormal;
+    public const string WidgetCompactFontWeightMedium = CapsuleOptionKinds.CompactFontWeightMedium;
+    public const string WidgetCompactFontWeightSemiBold = CapsuleOptionKinds.CompactFontWeightSemiBold;
     public const string WidgetTitleIconModeFilledMono = WidgetTitleIconModeNames.FilledMono;
     public const string WidgetTitleIconModeLineMono = WidgetTitleIconModeNames.LineMono;
     public const string WidgetTitleIconModeColor = WidgetTitleIconModeNames.Color;
@@ -602,6 +608,10 @@ public const int DefaultSearchMaxResults = 100;
         settings.WidgetCompactExpandDelayMs = SensitiveWidgetCompactExpandDelayMs;
         settings.WidgetCompactCollapseDelayMs = SensitiveWidgetCompactCollapseDelayMs;
         settings.WidgetCompactMediaCornerMode = WidgetCompactMediaCornerFollowWidget;
+        // Write through the slice so the facade-access ratchet stays untouched.
+        settings.WidgetShell.WidgetCompactFontFamily = string.Empty;
+        settings.WidgetShell.WidgetCompactFontSize = WidgetCompactFontSizeAuto;
+        settings.WidgetShell.WidgetCompactFontWeight = WidgetCompactFontWeightNormal;
         settings.WidgetTitleIconMode = WidgetTitleIconModeColor;
         settings.WidgetOpacity = DefaultWidgetOpacity;
         settings.IconSize = DefaultIconSize;
@@ -2636,6 +2646,28 @@ settings.FocusClickedWidgetOnRaise = false;
             changed = true;
         }
 
+        WidgetShellSettingsSlice compactFontShell = settings.WidgetShell;
+        string normalizedCompactFontFamily = NormalizeWidgetCompactFontFamily(compactFontShell.WidgetCompactFontFamily);
+        if (!string.Equals(compactFontShell.WidgetCompactFontFamily, normalizedCompactFontFamily, StringComparison.Ordinal))
+        {
+            compactFontShell.WidgetCompactFontFamily = normalizedCompactFontFamily;
+            changed = true;
+        }
+
+        double normalizedCompactFontSize = NormalizeWidgetCompactFontSize(compactFontShell.WidgetCompactFontSize);
+        if (Math.Abs(compactFontShell.WidgetCompactFontSize - normalizedCompactFontSize) > 0.0001)
+        {
+            compactFontShell.WidgetCompactFontSize = normalizedCompactFontSize;
+            changed = true;
+        }
+
+        string normalizedCompactFontWeight = NormalizeWidgetCompactFontWeight(compactFontShell.WidgetCompactFontWeight);
+        if (!string.Equals(compactFontShell.WidgetCompactFontWeight, normalizedCompactFontWeight, StringComparison.Ordinal))
+        {
+            compactFontShell.WidgetCompactFontWeight = normalizedCompactFontWeight;
+            changed = true;
+        }
+
         string normalizedTitleIconMode = NormalizeWidgetTitleIconModeSetting(settings.WidgetTitleIconMode);
         if (!string.Equals(settings.WidgetTitleIconMode, normalizedTitleIconMode, StringComparison.Ordinal))
         {
@@ -2961,6 +2993,15 @@ settings.FocusClickedWidgetOnRaise = false;
             ? WidgetCompactMediaCornerRound
             : WidgetCompactMediaCornerFollowWidget;
     }
+
+    public static string NormalizeWidgetCompactFontFamily(string? value) =>
+        CapsuleOptionKinds.NormalizeCompactFontFamily(value);
+
+    public static double NormalizeWidgetCompactFontSize(double value) =>
+        CapsuleOptionKinds.NormalizeCompactFontSize(value);
+
+    public static string NormalizeWidgetCompactFontWeight(string? value) =>
+        CapsuleOptionKinds.NormalizeCompactFontWeight(value);
 
     // Uplifted from the settings shell's capsule section (batch 33) so the
     // CapsuleSettingsCoordinator and the shell's binding state share one

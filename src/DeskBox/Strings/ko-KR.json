@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "크기 잠금 해제",
   "Widget.Shell.Collapse": "위젯 접기",
   "Todo.Due.Custom.Time": "사용자 지정 시간",
-  "Todo.Detail.EditStep": "단계 편집"
+  "Todo.Detail.EditStep": "단계 편집",
+  "Settings.Capsule.Font.Title": "캡슐 글꼴",
+  "Settings.Capsule.Font.Description": "위젯이 캡슐 모드로 접혔을 때 사용할 글꼴을 설정합니다",
+  "Settings.Capsule.Font.Default": "기본 글꼴 따르기",
+  "Settings.Capsule.FontSize.Title": "캡슐 글자 크기",
+  "Settings.Capsule.FontSize.Description": "캡슐 상태의 글자 크기를 조정하거나 펼친 제목 크기에 자동으로 맞춥니다",
+  "Settings.Capsule.FontSize.Auto": "제목 크기에 맞춤",
+  "Settings.Capsule.FontWeight.Title": "캡슐 글꼴 굵기",
+  "Settings.Capsule.FontWeight.Description": "접힌 캡슐 제목의 글꼴 굵기를 선택합니다",
+  "Settings.Capsule.FontWeight.Normal": "보통",
+  "Settings.Capsule.FontWeight.Medium": "중간",
+  "Settings.Capsule.FontWeight.SemiBold": "약간 굵게"
 }

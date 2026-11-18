@@ -479,6 +479,15 @@ public class AppSettings
     /// <inheritdoc cref="WidgetShellSettingsSlice.WidgetCompactMediaCornerMode"/>
     public string WidgetCompactMediaCornerMode { get => WidgetShell.WidgetCompactMediaCornerMode; set => WidgetShell.WidgetCompactMediaCornerMode = value; }
 
+    /// <inheritdoc cref="WidgetShellSettingsSlice.WidgetCompactFontFamily"/>
+    public string WidgetCompactFontFamily { get => WidgetShell.WidgetCompactFontFamily; set => WidgetShell.WidgetCompactFontFamily = value; }
+
+    /// <inheritdoc cref="WidgetShellSettingsSlice.WidgetCompactFontSize"/>
+    public double WidgetCompactFontSize { get => WidgetShell.WidgetCompactFontSize; set => WidgetShell.WidgetCompactFontSize = value; }
+
+    /// <inheritdoc cref="WidgetShellSettingsSlice.WidgetCompactFontWeight"/>
+    public string WidgetCompactFontWeight { get => WidgetShell.WidgetCompactFontWeight; set => WidgetShell.WidgetCompactFontWeight = value; }
+
     /// <inheritdoc cref="WidgetShellSettingsSlice.WidgetTitleIconMode"/>
     public string WidgetTitleIconMode { get => WidgetShell.WidgetTitleIconMode; set => WidgetShell.WidgetTitleIconMode = value; }
 

@@ -23,6 +23,9 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
     private readonly ICapsuleSettings _settings;
     private readonly Func<string, string> _localize;
     private readonly Func<string, object[], string> _localizeFormat;
+    private readonly Func<IReadOnlyList<string>> _getAvailableFontFamilies;
+
+    private static readonly double[] CompactFontSizePresets = [11, 12, 13, 14, 15, 16, 18, 20];
 
     private bool _isSyncingPresentation;
     private bool _isApplyingHoverResponse;
@@ -30,6 +33,11 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
     private string[]? _cachedWidthModeNames;
     private string[]? _cachedExpansionDirectionNames;
     private string[]? _cachedContentModeNames;
+    private string[]? _cachedCompactFontWeightNames;
+    private SettingsOption[]? _cachedCompactFontFamilyOptions;
+    private string? _cachedCompactFontFamilyCustomValue;
+    private SettingsOption[]? _cachedCompactFontSizeOptions;
+    private string? _cachedCompactFontSizeCustomValue;
     private string[]? _cachedArrangementNames;
     private string[]? _cachedBarPlacementNames;
     private string[]? _cachedBarDirectionNames;
@@ -41,6 +49,11 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
     private string _collapseBehavior = CapsuleOptionKinds.CollapseClick;
     private string _contentMode = CapsuleOptionKinds.ContentModeSmart;
     private bool _hideSensitiveContent;
+
+    // Typography state.
+    private string _compactFontFamily = string.Empty;
+    private string _compactFontSizeOption = "0";
+    private string _compactFontWeight = CapsuleOptionKinds.CompactFontWeightNormal;
 
     // Geometry state.
     private string _widthMode = CapsuleOptionKinds.WidthModeAligned;
@@ -71,11 +84,13 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
     public CapsuleSettingsViewModel(
         ICapsuleSettings settings,
         Func<string, string> localize,
-        Func<string, object[], string> localizeFormat)
+        Func<string, object[], string> localizeFormat,
+        Func<IReadOnlyList<string>>? getAvailableFontFamilies = null)
     {
         _settings = settings;
         _localize = localize;
         _localizeFormat = localizeFormat;
+        _getAvailableFontFamilies = getAvailableFontFamilies ?? static () => Array.Empty<string>();
         SyncPresentation();
     }
 
@@ -264,6 +279,196 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
             }
 
             _settings.SetWidgetCompactHideSensitiveContent(value);
+        }
+    }
+
+    // --- Compact typography (main section) ---
+
+    public string CompactFontFamily
+    {
+        get => _compactFontFamily;
+        set
+        {
+            string normalized = CapsuleOptionKinds.NormalizeCompactFontFamily(value);
+            if (!SetProperty(ref _compactFontFamily, normalized))
+            {
+                return;
+            }
+
+            if (_cachedCompactFontFamilyOptions is not null &&
+                !string.Equals(_cachedCompactFontFamilyCustomValue, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                _cachedCompactFontFamilyOptions = null;
+                OnPropertyChanged(nameof(AvailableCompactFontFamilyOptions));
+            }
+
+            if (_isSyncingPresentation)
+            {
+                return;
+            }
+
+            _settings.SetWidgetCompactFontFamily(normalized);
+        }
+    }
+
+    public IReadOnlyList<SettingsOption> AvailableCompactFontFamilyOptions
+    {
+        get
+        {
+            if (_cachedCompactFontFamilyOptions is not null &&
+                string.Equals(_cachedCompactFontFamilyCustomValue, _compactFontFamily, StringComparison.OrdinalIgnoreCase))
+            {
+                return _cachedCompactFontFamilyOptions;
+            }
+
+            IReadOnlyList<string> installed = _getAvailableFontFamilies();
+            var options = new List<SettingsOption>(installed.Count + 2)
+            {
+                new(string.Empty, _localize("Settings.Capsule.Font.Default"))
+            };
+
+            bool foundCurrent = string.IsNullOrEmpty(_compactFontFamily);
+            foreach (string family in installed)
+            {
+                if (string.IsNullOrWhiteSpace(family))
+                {
+                    continue;
+                }
+
+                string trimmed = family.Trim();
+                if (!foundCurrent && string.Equals(trimmed, _compactFontFamily, StringComparison.OrdinalIgnoreCase))
+                {
+                    options.Add(new SettingsOption(_compactFontFamily, trimmed));
+                    foundCurrent = true;
+                }
+                else
+                {
+                    options.Add(new SettingsOption(trimmed, trimmed));
+                }
+            }
+
+            if (!foundCurrent && !string.IsNullOrEmpty(_compactFontFamily))
+            {
+                options.Insert(1, new SettingsOption(_compactFontFamily, _compactFontFamily));
+            }
+
+            _cachedCompactFontFamilyCustomValue = _compactFontFamily;
+            _cachedCompactFontFamilyOptions = options.ToArray();
+            return _cachedCompactFontFamilyOptions;
+        }
+    }
+
+    public string CompactFontSizeOption
+    {
+        get => _compactFontSizeOption;
+        set
+        {
+            double parsed = CapsuleOptionKinds.ParseCompactFontSizeOptionValue(value);
+            string normalized = CapsuleOptionKinds.FormatCompactFontSizeOptionValue(parsed);
+            if (!SetProperty(ref _compactFontSizeOption, normalized))
+            {
+                return;
+            }
+
+            if (_cachedCompactFontSizeOptions is not null &&
+                !string.Equals(_cachedCompactFontSizeCustomValue, normalized, StringComparison.Ordinal))
+            {
+                _cachedCompactFontSizeOptions = null;
+                OnPropertyChanged(nameof(AvailableCompactFontSizeOptions));
+            }
+
+            if (_isSyncingPresentation)
+            {
+                return;
+            }
+
+            _settings.SetWidgetCompactFontSize(parsed);
+        }
+    }
+
+    public IReadOnlyList<SettingsOption> AvailableCompactFontSizeOptions
+    {
+        get
+        {
+            if (_cachedCompactFontSizeOptions is not null &&
+                string.Equals(_cachedCompactFontSizeCustomValue, _compactFontSizeOption, StringComparison.Ordinal))
+            {
+                return _cachedCompactFontSizeOptions;
+            }
+
+            var options = new List<SettingsOption>(CompactFontSizePresets.Length + 2)
+            {
+                new("0", _localize("Settings.Capsule.FontSize.Auto"))
+            };
+
+            double currentSize = CapsuleOptionKinds.ParseCompactFontSizeOptionValue(_compactFontSizeOption);
+            bool insertedCurrent = currentSize <= 0;
+            foreach (double preset in CompactFontSizePresets)
+            {
+                if (!insertedCurrent && currentSize < preset)
+                {
+                    string customValue = CapsuleOptionKinds.FormatCompactFontSizeOptionValue(currentSize);
+                    options.Add(new SettingsOption(customValue, $"{customValue} px"));
+                    insertedCurrent = true;
+                }
+                else if (!insertedCurrent && Math.Abs(currentSize - preset) < 0.01)
+                {
+                    insertedCurrent = true;
+                }
+
+                string presetValue = CapsuleOptionKinds.FormatCompactFontSizeOptionValue(preset);
+                options.Add(new SettingsOption(presetValue, $"{presetValue} px"));
+            }
+
+            if (!insertedCurrent)
+            {
+                string customValue = CapsuleOptionKinds.FormatCompactFontSizeOptionValue(currentSize);
+                options.Add(new SettingsOption(customValue, $"{customValue} px"));
+            }
+
+            _cachedCompactFontSizeCustomValue = _compactFontSizeOption;
+            _cachedCompactFontSizeOptions = options.ToArray();
+            return _cachedCompactFontSizeOptions;
+        }
+    }
+
+    public string CompactFontWeight
+    {
+        get => _compactFontWeight;
+        set
+        {
+            string normalized = CapsuleOptionKinds.NormalizeCompactFontWeight(value);
+            if (!SetProperty(ref _compactFontWeight, normalized))
+            {
+                return;
+            }
+
+            if (_isSyncingPresentation)
+            {
+                return;
+            }
+
+            _settings.SetWidgetCompactFontWeight(normalized);
+        }
+    }
+
+    public IReadOnlyList<SettingsOption> AvailableCompactFontWeightOptions
+    {
+        get
+        {
+            string[] values =
+            [
+                CapsuleOptionKinds.CompactFontWeightNormal,
+                CapsuleOptionKinds.CompactFontWeightMedium,
+                CapsuleOptionKinds.CompactFontWeightSemiBold
+            ];
+            _cachedCompactFontWeightNames ??=
+            [
+                _localize("Settings.Capsule.FontWeight.Normal"),
+                _localize("Settings.Capsule.FontWeight.Medium"),
+                _localize("Settings.Capsule.FontWeight.SemiBold")
+            ];
+            return BuildOptions(values, _cachedCompactFontWeightNames);
         }
     }
 
@@ -707,6 +912,7 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
         try
         {
             CapsuleBehaviorSettings behavior = _settings.ReadBehavior();
+            CapsuleTypographySettings typography = _settings.ReadTypography();
             CapsuleGeometrySettings geometry = _settings.ReadGeometry();
             CapsuleArrangementSettings arrangement = _settings.ReadArrangement();
             CapsuleAnimationSettings animation = _settings.ReadAnimation();
@@ -716,6 +922,11 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
                 behavior.CollapseBehavior);
             ContentMode = CapsuleOptionKinds.NormalizeContentMode(behavior.CompactContentMode);
             HideSensitiveContent = behavior.HideSensitiveContent;
+
+            CompactFontFamily = CapsuleOptionKinds.NormalizeCompactFontFamily(typography.CompactFontFamily);
+            CompactFontSizeOption = CapsuleOptionKinds.FormatCompactFontSizeOptionValue(
+                typography.CompactFontSize);
+            CompactFontWeight = CapsuleOptionKinds.NormalizeCompactFontWeight(typography.CompactFontWeight);
 
             WidthMode = CapsuleOptionKinds.NormalizeWidthMode(geometry.CompactWidthMode);
             ExpansionDirection = CapsuleOptionKinds.NormalizeExpansionDirection(
@@ -766,6 +977,9 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
         _cachedWidthModeNames = null;
         _cachedExpansionDirectionNames = null;
         _cachedContentModeNames = null;
+        _cachedCompactFontWeightNames = null;
+        _cachedCompactFontFamilyOptions = null;
+        _cachedCompactFontSizeOptions = null;
         _cachedArrangementNames = null;
         _cachedBarPlacementNames = null;
         _cachedBarDirectionNames = null;
@@ -776,6 +990,9 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(AvailableWidthModeOptions));
         OnPropertyChanged(nameof(AvailableExpansionDirectionOptions));
         OnPropertyChanged(nameof(AvailableContentModeOptions));
+        OnPropertyChanged(nameof(AvailableCompactFontFamilyOptions));
+        OnPropertyChanged(nameof(AvailableCompactFontSizeOptions));
+        OnPropertyChanged(nameof(AvailableCompactFontWeightOptions));
         OnPropertyChanged(nameof(AvailableArrangementOptions));
         OnPropertyChanged(nameof(AvailableBarPlacementOptions));
         OnPropertyChanged(nameof(AvailableBarDirectionOptions));
@@ -802,6 +1019,8 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
 
     public CapsuleBehaviorSettings ReadBehavior() => _settings.ReadBehavior();
 
+    public CapsuleTypographySettings ReadTypography() => _settings.ReadTypography();
+
     public CapsuleGeometrySettings ReadGeometry() => _settings.ReadGeometry();
 
     public CapsuleArrangementSettings ReadArrangement() => _settings.ReadArrangement();
@@ -818,6 +1037,15 @@ public sealed partial class CapsuleSettingsViewModel : ObservableObject
 
     public void SetWidgetCompactHideSensitiveContent(bool value) =>
         _settings.SetWidgetCompactHideSensitiveContent(value);
+
+    public void SetWidgetCompactFontFamily(string? fontFamily) =>
+        _settings.SetWidgetCompactFontFamily(fontFamily);
+
+    public void SetWidgetCompactFontSize(double fontSize) =>
+        _settings.SetWidgetCompactFontSize(fontSize);
+
+    public void SetWidgetCompactFontWeight(string? fontWeight) =>
+        _settings.SetWidgetCompactFontWeight(fontWeight);
 
     public void SetWidgetCompactWidthMode(string? mode) =>
         _settings.SetWidgetCompactWidthMode(mode);

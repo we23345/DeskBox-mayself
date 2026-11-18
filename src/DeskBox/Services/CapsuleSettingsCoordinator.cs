@@ -68,6 +68,15 @@ public sealed class CapsuleSettingsCoordinator : ICapsuleSettings
             shell.WidgetCompactCollapseDelayMs);
     }
 
+    public CapsuleTypographySettings ReadTypography()
+    {
+        WidgetShellSettingsSlice shell = _settings.Settings.WidgetShell;
+        return new(
+            shell.WidgetCompactFontFamily,
+            shell.WidgetCompactFontSize,
+            shell.WidgetCompactFontWeight);
+    }
+
     public void SetWidgetCollapseBehavior(string? behavior)
     {
         ThrowIfStopped();
@@ -207,6 +216,34 @@ public sealed class CapsuleSettingsCoordinator : ICapsuleSettings
             SettingsService.NormalizeWidgetCompactMediaCornerMode(mode),
             () => _settings.Settings.WidgetShell.WidgetCompactMediaCornerMode,
             value => _settings.Settings.WidgetShell.WidgetCompactMediaCornerMode = value);
+    }
+
+    public void SetWidgetCompactFontFamily(string? fontFamily)
+    {
+        ThrowIfStopped();
+        SetOption(
+            SettingsService.NormalizeWidgetCompactFontFamily(fontFamily),
+            () => _settings.Settings.WidgetShell.WidgetCompactFontFamily,
+            value => _settings.Settings.WidgetShell.WidgetCompactFontFamily = value);
+    }
+
+    public void SetWidgetCompactFontSize(double fontSize)
+    {
+        ThrowIfStopped();
+        double normalized = SettingsService.NormalizeWidgetCompactFontSize(fontSize);
+        WidgetShellSettingsSlice shell = _settings.Settings.WidgetShell;
+        if (Math.Abs(shell.WidgetCompactFontSize - normalized) < 0.0001) return;
+        shell.WidgetCompactFontSize = normalized;
+        _settings.SaveDebounced();
+    }
+
+    public void SetWidgetCompactFontWeight(string? fontWeight)
+    {
+        ThrowIfStopped();
+        SetOption(
+            SettingsService.NormalizeWidgetCompactFontWeight(fontWeight),
+            () => _settings.Settings.WidgetShell.WidgetCompactFontWeight,
+            value => _settings.Settings.WidgetShell.WidgetCompactFontWeight = value);
     }
 
     // Option edits keep the section's original immediate-save semantics;

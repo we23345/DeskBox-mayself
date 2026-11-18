@@ -427,4 +427,89 @@ public sealed class WidgetCompactBoundsCalculatorTests
 
         Assert.Equal(316, restored?.CompactWidth);
     }
+
+    [Fact]
+    public void ResolveCompactTypography_AutoFollowsExpandedSizeWithNormalWeight()
+    {
+        var metrics = WidgetCompactBoundsCalculator.ResolveCompactTypography(
+            configuredFontFamily: null,
+            configuredFontSize: 0,
+            configuredFontWeight: null,
+            expandedTitleFontSize: 14);
+
+        Assert.Equal(string.Empty, metrics.FontFamily);
+        Assert.Equal(14d, metrics.TitleFontSize);
+        Assert.Equal(12d, metrics.SummaryFontSize);
+        Assert.Equal("Normal", metrics.FontWeight);
+        Assert.True(metrics.TitleViewportHeight >= 21);
+        Assert.True(metrics.SummaryViewportHeight >= 18);
+    }
+
+    [Fact]
+    public void ResolveCompactTypography_AppliesCustomFamilyClampedSizeAndWeight()
+    {
+        var metrics = WidgetCompactBoundsCalculator.ResolveCompactTypography(
+            configuredFontFamily: "  Cascadia Mono  ",
+            configuredFontSize: 16.5,
+            configuredFontWeight: "semibold",
+            expandedTitleFontSize: 14);
+
+        Assert.Equal("Cascadia Mono", metrics.FontFamily);
+        Assert.Equal(16.5d, metrics.TitleFontSize);
+        Assert.Equal(14.5d, metrics.SummaryFontSize);
+        Assert.Equal("SemiBold", metrics.FontWeight);
+        Assert.True(metrics.TitleViewportHeight >= 24);
+    }
+
+    [Fact]
+    public void ResolveCompactIdentityLayout_CollapsesLeadingGapWhenIconHidden()
+    {
+        var ungroupedHidden = WidgetCompactBoundsCalculator.ResolveCompactIdentityLayout(
+            WidgetCompactWidthTier.Standard,
+            usesStackedText: false,
+            hasThumbnail: false,
+            useFullBleed: false,
+            showVinyl: false,
+            hasIconImage: false,
+            showTitleIconVisual: false,
+            groupRailWidth: 0);
+
+        Assert.Equal(0, ungroupedHidden.IdentityHostWidth);
+        Assert.Equal(0, ungroupedHidden.IdentityHostHeight);
+        Assert.False(ungroupedHidden.ShowIdentityHost);
+        Assert.False(ungroupedHidden.ShowIdentityVisualHost);
+        Assert.Equal(6, ungroupedHidden.TextLeftMargin);
+        Assert.Equal(14, ungroupedHidden.MoveHitRegionWidth);
+
+        var groupedHidden = WidgetCompactBoundsCalculator.ResolveCompactIdentityLayout(
+            WidgetCompactWidthTier.Standard,
+            usesStackedText: false,
+            hasThumbnail: false,
+            useFullBleed: false,
+            showVinyl: false,
+            hasIconImage: false,
+            showTitleIconVisual: false,
+            groupRailWidth: 10);
+
+        Assert.Equal(10, groupedHidden.IdentityHostWidth);
+        Assert.True(groupedHidden.ShowIdentityHost);
+        Assert.False(groupedHidden.ShowIdentityVisualHost);
+        Assert.Equal(4, groupedHidden.TextLeftMargin);
+
+        var iconVisible = WidgetCompactBoundsCalculator.ResolveCompactIdentityLayout(
+            WidgetCompactWidthTier.Standard,
+            usesStackedText: false,
+            hasThumbnail: false,
+            useFullBleed: false,
+            showVinyl: false,
+            hasIconImage: false,
+            showTitleIconVisual: true,
+            groupRailWidth: 0);
+
+        Assert.Equal(30, iconVisible.IdentityHitSize);
+        Assert.Equal(30, iconVisible.IdentityHostWidth);
+        Assert.True(iconVisible.ShowIdentityHost);
+        Assert.True(iconVisible.ShowIdentityVisualHost);
+        Assert.Equal(4, iconVisible.TextLeftMargin);
+    }
 }

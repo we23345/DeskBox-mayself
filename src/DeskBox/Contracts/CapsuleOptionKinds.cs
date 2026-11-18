@@ -120,6 +120,65 @@ public static class CapsuleOptionKinds
     public const int PreventAccidentalExpandDelayMs = 620;
     public const int PreventAccidentalCollapseDelayMs = 900;
 
+    // --- Compact typography ---
+    public const double CompactFontSizeAuto = 0;
+    public const double MinCompactFontSize = 10;
+    public const double MaxCompactFontSize = 20;
+    public const string CompactFontWeightNormal = "Normal";
+    public const string CompactFontWeightMedium = "Medium";
+    public const string CompactFontWeightSemiBold = "SemiBold";
+
+    public static string NormalizeCompactFontFamily(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+
+    public static double NormalizeCompactFontSize(double value)
+    {
+        if (!double.IsFinite(value) || value <= 0)
+        {
+            return CompactFontSizeAuto;
+        }
+
+        double rounded = Math.Round(value * 2, MidpointRounding.AwayFromZero) / 2;
+        return Math.Clamp(rounded, MinCompactFontSize, MaxCompactFontSize);
+    }
+
+    public static string FormatCompactFontSizeOptionValue(double value)
+    {
+        double normalized = NormalizeCompactFontSize(value);
+        return normalized <= 0
+            ? "0"
+            : normalized.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static double ParseCompactFontSizeOptionValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            string.Equals(value.Trim(), "0", StringComparison.Ordinal))
+        {
+            return CompactFontSizeAuto;
+        }
+
+        return double.TryParse(
+            value,
+            System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out double parsed)
+            ? NormalizeCompactFontSize(parsed)
+            : CompactFontSizeAuto;
+    }
+
+    public static string NormalizeCompactFontWeight(string? value)
+    {
+        if (string.Equals(value, CompactFontWeightMedium, StringComparison.OrdinalIgnoreCase))
+        {
+            return CompactFontWeightMedium;
+        }
+
+        return string.Equals(value, CompactFontWeightSemiBold, StringComparison.OrdinalIgnoreCase)
+            ? CompactFontWeightSemiBold
+            : CompactFontWeightNormal;
+    }
+
     public static string NormalizeWidthMode(string? value)
     {
         return string.Equals(value, WidthModeIndependent, StringComparison.OrdinalIgnoreCase)

@@ -255,4 +255,50 @@ public sealed class CapsuleSettingsCoordinatorTests : IDisposable
             SettingsService.WidgetCompactAnimationSlow,
             settings.Settings.WidgetShell.WidgetCompactAnimationEffect);
     }
+
+    [Fact]
+    public async Task TypographySetters_NormalizeSkipNoOpsAndRoundTripToDisk()
+    {
+        var settings = new SettingsService(_root);
+        var coordinator = new CapsuleSettingsCoordinator(settings);
+        int notified = 0;
+        settings.SettingsChanged += () => notified++;
+
+        CapsuleTypographySettings initial = coordinator.ReadTypography();
+        Assert.Equal(string.Empty, initial.CompactFontFamily);
+        Assert.Equal(0d, initial.CompactFontSize);
+        Assert.Equal(CapsuleOptionKinds.CompactFontWeightNormal, initial.CompactFontWeight);
+
+        // Unchanged defaults must not notify.
+        coordinator.SetWidgetCompactFontFamily("   ");
+        coordinator.SetWidgetCompactFontSize(double.NaN);
+        coordinator.SetWidgetCompactFontWeight("InvalidWeight");
+        Assert.Equal(0, notified);
+
+        coordinator.SetWidgetCompactFontFamily("  Microsoft YaHei UI  ");
+        coordinator.SetWidgetCompactFontSize(13.26); // rounds to 13.5 (0.5 step)
+        coordinator.SetWidgetCompactFontWeight("semibold");
+        Assert.Equal(3, notified);
+
+        // Writing equivalent normalized values must not notify again.
+        coordinator.SetWidgetCompactFontFamily("Microsoft YaHei UI");
+        coordinator.SetWidgetCompactFontSize(13.5);
+        coordinator.SetWidgetCompactFontWeight("SemiBold");
+        Assert.Equal(3, notified);
+
+        // Out-of-range explicit sizes clamp to [10, 20].
+        coordinator.SetWidgetCompactFontSize(6);
+        Assert.Equal(CapsuleOptionKinds.MinCompactFontSize, settings.Settings.WidgetShell.WidgetCompactFontSize);
+        coordinator.SetWidgetCompactFontSize(32);
+        Assert.Equal(CapsuleOptionKinds.MaxCompactFontSize, settings.Settings.WidgetShell.WidgetCompactFontSize);
+
+        coordinator.SetWidgetCompactFontSize(15);
+        await coordinator.FlushSaveAsync();
+
+        var reloaded = new SettingsService(_root);
+        await reloaded.LoadAsync();
+        Assert.Equal("Microsoft YaHei UI", reloaded.Settings.WidgetShell.WidgetCompactFontFamily);
+        Assert.Equal(15d, reloaded.Settings.WidgetShell.WidgetCompactFontSize);
+        Assert.Equal(CapsuleOptionKinds.CompactFontWeightSemiBold, reloaded.Settings.WidgetShell.WidgetCompactFontWeight);
+    }
 }

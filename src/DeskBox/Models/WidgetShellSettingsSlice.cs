@@ -201,6 +201,24 @@ public sealed class WidgetShellSettingsSlice
     public string WidgetCompactMediaCornerMode { get; set; } = "FollowWidget";
 
     /// <summary>
+    /// Font family name used by compact/capsule widget titles and summaries.
+    /// Empty string follows the default widget font family.
+    /// </summary>
+    public string WidgetCompactFontFamily { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Compact/capsule title font size in DIPs. <c>0</c> automatically matches
+    /// the expanded widget title size so expand/collapse transitions stay aligned.
+    /// </summary>
+    public double WidgetCompactFontSize { get; set; }
+
+    /// <summary>
+    /// Font weight applied to compact/capsule widget titles.
+    /// Valid values: <c>"Normal"</c>, <c>"Medium"</c>, <c>"SemiBold"</c>.
+    /// </summary>
+    public string WidgetCompactFontWeight { get; set; } = "Normal";
+
+    /// <summary>
     /// Title icon presentation for widget title bars.
     /// Valid values: <c>"FilledMono"</c>, <c>"LineMono"</c>, <c>"Color"</c>, <c>"Hidden"</c>, <c>"TextLabel"</c>.
     /// </summary>

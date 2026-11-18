@@ -484,8 +484,9 @@
                 x:Name="CompactMoveHitRegion"
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
-                Width="48"
+                Width="14"
                 Height="34"
+                Margin="-8,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Background="#01000000"
@@ -548,14 +549,14 @@
                     <StackPanel.RenderTransform>
                         <TranslateTransform x:Name="CompactTextTransform" />
                     </StackPanel.RenderTransform>
-                    <Grid x:Name="CompactTitleViewport" Height="18">
+                    <Grid x:Name="CompactTitleViewport" Height="21">
                         <Grid x:Name="CompactTitleMarqueeTrack">
                             <TextBlock
                                 x:Name="CompactTitleText"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                FontSize="12.5"
-                                FontWeight="SemiBold"
+                                FontSize="14"
+                                FontWeight="Normal"
                                 MaxLines="1"
                                 TextWrapping="NoWrap"
                                 TextTrimming="CharacterEllipsis" />
@@ -563,8 +564,8 @@
                                 x:Name="CompactTitleMarqueeClone"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                FontSize="12.5"
-                                FontWeight="SemiBold"
+                                FontSize="14"
+                                FontWeight="Normal"
                                 MaxLines="1"
                                 TextWrapping="NoWrap"
                                 TextTrimming="Clip"
@@ -578,14 +579,14 @@
                         VerticalAlignment="Center"
                         Background="{ThemeResource TextFillColorTertiaryBrush}"
                         CornerRadius="2" />
-                    <Grid x:Name="CompactSummaryViewport" Height="17">
+                    <Grid x:Name="CompactSummaryViewport" Height="18">
                         <Grid x:Name="CompactSummaryMarqueeTrack">
                             <TextBlock
                                 x:Name="CompactSummaryText"
                                 MinWidth="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                FontSize="11.5"
+                                FontSize="12"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 MaxLines="1"
                                 TextWrapping="NoWrap"
@@ -595,7 +596,7 @@
                                 MinWidth="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                FontSize="11.5"
+                                FontSize="12"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                 MaxLines="1"
                                 TextWrapping="NoWrap"

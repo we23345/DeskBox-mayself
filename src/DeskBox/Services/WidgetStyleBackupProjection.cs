@@ -52,6 +52,8 @@ internal static class WidgetStyleBackupProjection
         // Compact-state appearance only — never its geometry or triggers.
         "widgetCollapsedStyle", "widgetCompactContentMode",
         "widgetCompactHideSensitiveContent", "widgetCompactMediaCornerMode",
+        "widgetCompactFontFamily", "widgetCompactFontSize",
+        "widgetCompactFontWeight",
         "widgetCompactAnimationEffect", "widgetCompactAnimationDurationMs"
     };
 

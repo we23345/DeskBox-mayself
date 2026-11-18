@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "Разблокировать размер",
   "Widget.Shell.Collapse": "Свернуть виджет",
   "Todo.Due.Custom.Time": "Настраиваемое время",
-  "Todo.Detail.EditStep": "Изменить шаг"
+  "Todo.Detail.EditStep": "Изменить шаг",
+  "Settings.Capsule.Font.Title": "Шрифт капсулы",
+  "Settings.Capsule.Font.Description": "Настройте шрифт текста виджета в свёрнутом режиме капсулы",
+  "Settings.Capsule.Font.Default": "Как основной шрифт",
+  "Settings.Capsule.FontSize.Title": "Размер шрифта капсулы",
+  "Settings.Capsule.FontSize.Description": "Задайте размер текста капсулы или автоматически используйте размер заголовка",
+  "Settings.Capsule.FontSize.Auto": "Как размер заголовка",
+  "Settings.Capsule.FontWeight.Title": "Насыщенность шрифта капсулы",
+  "Settings.Capsule.FontWeight.Description": "Выберите толщину шрифта для заголовков в режиме капсулы",
+  "Settings.Capsule.FontWeight.Normal": "Обычный",
+  "Settings.Capsule.FontWeight.Medium": "Средний",
+  "Settings.Capsule.FontWeight.SemiBold": "Полужирный"
 }

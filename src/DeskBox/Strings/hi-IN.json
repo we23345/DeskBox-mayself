@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "आकार अनलॉक करें",
   "Widget.Shell.Collapse": "विजेट संक्षिप्त करें",
   "Todo.Due.Custom.Time": "कस्टम समय",
-  "Todo.Detail.EditStep": "चरण संपादित करें"
+  "Todo.Detail.EditStep": "चरण संपादित करें",
+  "Settings.Capsule.Font.Title": "कैप्सूल फ़ॉन्ट",
+  "Settings.Capsule.Font.Description": "विजेट के कैप्सूल मोड में सिमटने पर उपयोग होने वाला फ़ॉन्ट चुनें",
+  "Settings.Capsule.Font.Default": "डिफ़ॉल्ट फ़ॉन्ट का पालन करें",
+  "Settings.Capsule.FontSize.Title": "कैप्सूल फ़ॉन्ट आकार",
+  "Settings.Capsule.FontSize.Description": "कैप्सूल टेक्स्ट का आकार बदलें या स्वचालित रूप से विस्तारित शीर्षक के आकार से मिलान करें",
+  "Settings.Capsule.FontSize.Auto": "शीर्षक आकार के अनुसार",
+  "Settings.Capsule.FontWeight.Title": "कैप्सूल फ़ॉन्ट मोटाई",
+  "Settings.Capsule.FontWeight.Description": "सिमटे हुए कैप्सूल शीर्षक के लिए फ़ॉन्ट की मोटाई चुनें",
+  "Settings.Capsule.FontWeight.Normal": "सामान्य",
+  "Settings.Capsule.FontWeight.Medium": "मध्यम",
+  "Settings.Capsule.FontWeight.SemiBold": "अर्ध-बोल्ड"
 }

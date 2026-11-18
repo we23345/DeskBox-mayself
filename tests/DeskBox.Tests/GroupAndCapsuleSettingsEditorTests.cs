@@ -509,4 +509,72 @@ public sealed class GroupAndCapsuleSettingsEditorTests : IDisposable
         // The projection state machine stays on the shell as editor pushes.
         Assert.Contains(properties, property => property.Name == "ResetAllCapsuleOverridesCommand");
     }
+
+    [Fact]
+    public void CapsuleEditor_TypographyOptionsLazyEnumerateAndPreserveCustomValues()
+    {
+        var settings = new SettingsService(_root);
+        settings.Settings.WidgetShell.WidgetCompactFontFamily = "CustomMono";
+        settings.Settings.WidgetShell.WidgetCompactFontSize = 12.5;
+        settings.Settings.WidgetShell.WidgetCompactFontWeight = CapsuleOptionKinds.CompactFontWeightMedium;
+
+        int fontCatalogCalls = 0;
+        var coordinator = new CapsuleSettingsCoordinator(settings);
+        var editor = new CapsuleSettingsViewModel(
+            coordinator,
+            key => key,
+            (key, _) => key,
+            () =>
+            {
+                fontCatalogCalls++;
+                return ["Segoe UI", "Microsoft YaHei UI"];
+            });
+
+        // Constructing and syncing the editor must not trigger eager font enumeration.
+        Assert.Equal(0, fontCatalogCalls);
+        Assert.Equal("CustomMono", editor.CompactFontFamily);
+        Assert.Equal("12.5", editor.CompactFontSizeOption);
+        Assert.Equal(CapsuleOptionKinds.CompactFontWeightMedium, editor.CompactFontWeight);
+
+        IReadOnlyList<SettingsOption> families = editor.AvailableCompactFontFamilyOptions;
+        Assert.Equal(1, fontCatalogCalls);
+        // Repeated reads use the cached list.
+        _ = editor.AvailableCompactFontFamilyOptions;
+        Assert.Equal(1, fontCatalogCalls);
+        Assert.Contains(families, option => option.Value == string.Empty);
+        Assert.Contains(families, option => option.Value == "CustomMono");
+        Assert.Contains(families, option => option.Value == "Microsoft YaHei UI");
+
+        IReadOnlyList<SettingsOption> sizes = editor.AvailableCompactFontSizeOptions;
+        Assert.Equal("0", sizes[0].Value);
+        Assert.Contains(sizes, option => option.Value == "12.5");
+        Assert.Contains(sizes, option => option.Value == "14");
+
+        // Localization refresh invalidates caches cleanly.
+        editor.RefreshLocalization();
+        _ = editor.AvailableCompactFontFamilyOptions;
+        Assert.Equal(2, fontCatalogCalls);
+
+        // XAML and AOT property bridge must expose all typography bindings.
+        string capsuleSection = File.ReadAllText(
+            TestPaths.FromRepository("src/DeskBox/Views/SettingsSections/CapsuleModeSettingsSection.xaml"));
+        string capsuleBridge = File.ReadAllText(
+            TestPaths.FromRepository("src/DeskBox/Features/Capsule/CapsuleSettingsViewModel.AotBindableProperties.cs"));
+
+        Assert.Contains(
+            "controls:SettingsComboBox.Value=\"{Binding CompactFontFamily, Mode=TwoWay}\"",
+            capsuleSection);
+        Assert.Contains(
+            "controls:SettingsComboBox.Value=\"{Binding CompactFontSizeOption, Mode=TwoWay}\"",
+            capsuleSection);
+        Assert.Contains(
+            "controls:SettingsComboBox.Value=\"{Binding CompactFontWeight, Mode=TwoWay}\"",
+            capsuleSection);
+        Assert.Contains("nameof(CompactFontFamily)", capsuleBridge);
+        Assert.Contains("nameof(AvailableCompactFontFamilyOptions)", capsuleBridge);
+        Assert.Contains("nameof(CompactFontSizeOption)", capsuleBridge);
+        Assert.Contains("nameof(AvailableCompactFontSizeOptions)", capsuleBridge);
+        Assert.Contains("nameof(CompactFontWeight)", capsuleBridge);
+        Assert.Contains("nameof(AvailableCompactFontWeightOptions)", capsuleBridge);
+    }
 }

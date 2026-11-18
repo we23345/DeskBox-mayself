@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "Desbloquear tamaño",
   "Widget.Shell.Collapse": "Contraer widget",
   "Todo.Due.Custom.Time": "Hora personalizada",
-  "Todo.Detail.EditStep": "Editar paso"
+  "Todo.Detail.EditStep": "Editar paso",
+  "Settings.Capsule.Font.Title": "Fuente de la cápsula",
+  "Settings.Capsule.Font.Description": "Personaliza la fuente usada cuando un widget se contrae en cápsula",
+  "Settings.Capsule.Font.Default": "Seguir fuente predeterminada",
+  "Settings.Capsule.FontSize.Title": "Tamaño de fuente de la cápsula",
+  "Settings.Capsule.FontSize.Description": "Ajusta el tamaño del texto de la cápsula o iguala el título expandido",
+  "Settings.Capsule.FontSize.Auto": "Igualar tamaño del título",
+  "Settings.Capsule.FontWeight.Title": "Grosor de fuente de la cápsula",
+  "Settings.Capsule.FontWeight.Description": "Elige el grosor del texto para los títulos en modo cápsula",
+  "Settings.Capsule.FontWeight.Normal": "Normal",
+  "Settings.Capsule.FontWeight.Medium": "Medio",
+  "Settings.Capsule.FontWeight.SemiBold": "Seminegrita"
 }

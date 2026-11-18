@@ -23,11 +23,17 @@ public readonly record struct CapsuleTimingSettings(
     int ExpandDelayMs,
     int CollapseDelayMs);
 
+public readonly record struct CapsuleTypographySettings(
+    string CompactFontFamily,
+    double CompactFontSize,
+    string CompactFontWeight);
+
 /// <summary>
 /// Settings-page writes for the capsule/compact-mode section: collapse
 /// behavior, compact content mode, sensitive-content hiding, capsule geometry,
 /// capsule bar arrangement, compact animation (effect plus duration presets),
-/// hover expand/collapse delays and compact media corner style. The settings
+/// hover expand/collapse delays, compact media corner style, and compact
+/// typography. The settings
 /// shell keeps the XAML/AOT binding surface and the view-state dances (preset
 /// selections, derived Custom flags); this port owns the raw persisted values.
 /// Every write keeps the section's original save semantics: normalize, store,
@@ -41,6 +47,7 @@ public interface ICapsuleSettings
     CapsuleArrangementSettings ReadArrangement();
     CapsuleAnimationSettings ReadAnimation();
     CapsuleTimingSettings ReadTiming();
+    CapsuleTypographySettings ReadTypography();
 
     void SetWidgetCollapseBehavior(string? behavior);
     void SetWidgetCompactContentMode(string? mode);
@@ -64,4 +71,8 @@ public interface ICapsuleSettings
     void SetWidgetCompactCollapseDelayMs(double value);
 
     void SetWidgetCompactMediaCornerMode(string? mode);
+
+    void SetWidgetCompactFontFamily(string? fontFamily);
+    void SetWidgetCompactFontSize(double fontSize);
+    void SetWidgetCompactFontWeight(string? fontWeight);
 }

@@ -8,6 +8,7 @@ using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -487,6 +488,7 @@ public sealed partial class WidgetShell : UserControl
         Loaded += (_, _) =>
         {
             ApplyChromeMode();
+            ApplyCompactTypography();
             ApplyCompactAdaptiveLayout();
             ApplyFullBleedOverlayTheme();
             if (_isHostVisualActivityEnabled)
@@ -1851,6 +1853,7 @@ public sealed partial class WidgetShell : UserControl
             contentMode,
             SettingsService.WidgetCompactContentModeMinimal,
             StringComparison.Ordinal);
+        ApplyCompactTypography();
         ApplyCompactAdaptiveLayout();
         ApplyChromeMode();
         UpdateOverlayDragHandleVisual(animate: false);
@@ -2380,9 +2383,11 @@ public sealed partial class WidgetShell : UserControl
 
     public void SetCompactPresentation(WidgetCompactPresentation presentation)
     {
+        ApplyCompactTypography();
         WidgetCompactPresentation? previous = _compactPresentation;
         if (previous == presentation)
         {
+            SyncCompactTitleIconModeAndLayout();
             return;
         }
 
@@ -2424,9 +2429,18 @@ public sealed partial class WidgetShell : UserControl
                     }
                 }
 
+                SyncCompactTitleIconModeAndLayout();
                 return;
             }
         }
+
+        string targetIconMode = ResolveCompactTargetIconMode(presentation);
+        Visibility targetIconVisibility = string.Equals(
+            targetIconMode,
+            WidgetTitleIconModeNames.Hidden,
+            StringComparison.Ordinal)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
 
         bool textChanged = previous is null ||
             !string.Equals(previous.Title, presentation.Title, StringComparison.Ordinal) ||
@@ -2442,7 +2456,11 @@ public sealed partial class WidgetShell : UserControl
             previous.ShowMediaControls != presentation.ShowMediaControls ||
             previous.UseStackedText != presentation.UseStackedText ||
             previous.UseFullBleedBackground != presentation.UseFullBleedBackground ||
+            previous.ShowVinyl != presentation.ShowVinyl ||
+            (previous.Thumbnail is not null) != (presentation.Thumbnail is not null) ||
             (previous.IconImage is not null) != (presentation.IconImage is not null) ||
+            !string.Equals(CompactTitleIcon.Mode, targetIconMode, StringComparison.Ordinal) ||
+            CompactTitleIcon.Visibility != targetIconVisibility ||
             string.IsNullOrWhiteSpace(previous.Summary) != string.IsNullOrWhiteSpace(presentation.Summary);
 
         // Tear down the previous moving canvas before replacing either text.
@@ -2484,7 +2502,7 @@ public sealed partial class WidgetShell : UserControl
         // White border for thumbnail (quick capture)
         if (!useFullBleed && presentation.Thumbnail is not null)
         {
-            CompactThumbnailHost.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(0x99, 0xFF, 0xFF, 0xFF));
+            CompactThumbnailHost.BorderBrush = s_thumbnailBorderBrush;
             CompactThumbnailHost.BorderThickness = new Thickness(1);
         }
         else
@@ -2504,34 +2522,11 @@ public sealed partial class WidgetShell : UserControl
             ? Visibility.Visible
             : Visibility.Collapsed;
 
-        // When an icon image (e.g. weather) is shown, the default widget glyph must be
-        // hidden. We cannot just set CompactTitleIcon.Visibility = Collapsed, because
-        // WidgetTitleIcon re-applies Visibility = Visible on its own Loaded /
-        // ActualThemeChanged and whenever an appearance property changes. So the hide
-        // has to go through the control's own Mode = Hidden, which makes it keep
-        // itself Collapsed and survive its internal re-show logic.
-        //
-        // The Mode is driven DIRECTLY here (not via the former x:Bind to the
-        // WidgetShell.TitleIconMode DP): the content-widget appearance path
-        // (ContentWidgetWindow) resets that DP to the global setting on every
-        // theme/appearance refresh, which would re-show the glyph on top of the
-        // icon image. Setting the target property directly is immune to that reset.
-        // When the icon should be visible we honor the user's global icon-mode
-        // preference so the compact glyph still respects their setting.
-        bool showTitleIcon = !hasIconImage && !useFullBleed && presentation.Thumbnail is null && !showVinyl;
-        CompactTitleIcon.Visibility = showTitleIcon ? Visibility.Visible : Visibility.Collapsed;
-        // When the icon is visible we honor the user's global icon-mode
-        // preference so the compact glyph still respects their setting; fall back
-        // to Color if the service isn't ready yet.
-        string visibleIconMode = WidgetTitleIconModeNames.Color;
-        if (App.Current?.SettingsService?.Settings is { } settings &&
-            !string.IsNullOrWhiteSpace(settings.WidgetTitleIconMode))
-        {
-            visibleIconMode = settings.WidgetTitleIconMode;
-        }
-        CompactTitleIcon.Mode = showTitleIcon
-            ? visibleIconMode
-            : WidgetTitleIconModeNames.Hidden;
+        // When an icon image (e.g. weather) is shown or title icons are hidden,
+        // drive CompactTitleIcon.Mode directly so WidgetTitleIcon stays Collapsed
+        // across theme refreshes and Appearance DP resets.
+        CompactTitleIcon.Visibility = targetIconVisibility;
+        CompactTitleIcon.Mode = targetIconMode;
 
         // Per-widget icon color override (e.g. file type color)
         if (presentation.IconColor is not null)
@@ -2561,7 +2556,7 @@ public sealed partial class WidgetShell : UserControl
             CompactBadgeText.Text = presentation.BadgeText;
             CompactBadge.Background = presentation.BadgeIsWarning
                 ? ResolveCriticalBadgeBrush()
-                : new SolidColorBrush(
+                : SharedBrushCache.GetOrCreate(
                     App.Current.ThemeService?.GetEffectiveAccentColor() ??
                     AccentColorHelper.DefaultAccentColor);
         }
@@ -2593,6 +2588,132 @@ public sealed partial class WidgetShell : UserControl
         }
     }
 
+    private string ResolveVisibleCompactTitleIconMode()
+    {
+        if (App.Current?.SettingsService?.Settings.WidgetShell is { } shellSettings &&
+            !string.IsNullOrWhiteSpace(shellSettings.WidgetTitleIconMode))
+        {
+            return shellSettings.WidgetTitleIconMode;
+        }
+
+        return !string.IsNullOrWhiteSpace(TitleIconMode)
+            ? TitleIconMode
+            : WidgetTitleIconModeNames.Color;
+    }
+
+    private string ResolveCompactTargetIconMode(WidgetCompactPresentation presentation)
+    {
+        bool useFullBleed = presentation.UseFullBleedBackground && presentation.Thumbnail is not null;
+        bool showVinyl = presentation.ShowVinyl && presentation.Thumbnail is not null;
+        bool hasIconImage = presentation.IconImage is not null;
+        bool hasThumbnail = presentation.Thumbnail is not null;
+        if (hasIconImage || useFullBleed || hasThumbnail || showVinyl)
+        {
+            return WidgetTitleIconModeNames.Hidden;
+        }
+
+        string visibleIconMode = ResolveVisibleCompactTitleIconMode();
+        return string.Equals(
+            WidgetTitleIconModeNames.NormalizeMode(visibleIconMode),
+            WidgetTitleIconModeNames.Hidden,
+            StringComparison.Ordinal)
+            ? WidgetTitleIconModeNames.Hidden
+            : visibleIconMode;
+    }
+
+    private void SyncCompactTitleIconModeAndLayout()
+    {
+        if (_compactPresentation is null)
+        {
+            return;
+        }
+
+        string targetMode = ResolveCompactTargetIconMode(_compactPresentation);
+        Visibility targetVisibility = string.Equals(
+            targetMode,
+            WidgetTitleIconModeNames.Hidden,
+            StringComparison.Ordinal)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        if (string.Equals(CompactTitleIcon.Mode, targetMode, StringComparison.Ordinal) &&
+            CompactTitleIcon.Visibility == targetVisibility)
+        {
+            return;
+        }
+
+        CompactTitleIcon.Visibility = targetVisibility;
+        CompactTitleIcon.Mode = targetMode;
+        ApplyCompactAdaptiveLayout();
+    }
+
+    private void ApplyCompactTypography()
+    {
+        WidgetShellSettingsSlice? shellSettings = App.Current?.SettingsService?.Settings.WidgetShell;
+        CompactTypographyMetrics metrics = WidgetCompactBoundsCalculator.ResolveCompactTypography(
+            shellSettings?.WidgetCompactFontFamily,
+            shellSettings?.WidgetCompactFontSize ?? 0,
+            shellSettings?.WidgetCompactFontWeight,
+            TitleText.FontSize);
+
+        if (string.Equals(_appliedCompactFontFamily, metrics.FontFamilyName, StringComparison.Ordinal) &&
+            _appliedCompactTitleFontSize.Equals(metrics.TitleFontSize) &&
+            _appliedCompactSummaryFontSize.Equals(metrics.SummaryFontSize) &&
+            string.Equals(_appliedCompactFontWeight, metrics.FontWeightName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _appliedCompactFontFamily = metrics.FontFamilyName;
+        _appliedCompactTitleFontSize = metrics.TitleFontSize;
+        _appliedCompactSummaryFontSize = metrics.SummaryFontSize;
+        _appliedCompactFontWeight = metrics.FontWeightName;
+
+        if (string.IsNullOrEmpty(metrics.FontFamilyName))
+        {
+            CompactTitleText.ClearValue(TextBlock.FontFamilyProperty);
+            CompactTitleMarqueeClone.ClearValue(TextBlock.FontFamilyProperty);
+            CompactSummaryText.ClearValue(TextBlock.FontFamilyProperty);
+            CompactSummaryMarqueeClone.ClearValue(TextBlock.FontFamilyProperty);
+        }
+        else
+        {
+            if (!string.Equals(_cachedCompactCustomFontFamilyName, metrics.FontFamilyName, StringComparison.Ordinal))
+            {
+                _cachedCompactCustomFontFamilyName = metrics.FontFamilyName;
+                _cachedCompactCustomFontFamily = new FontFamily(metrics.FontFamilyName);
+            }
+
+            FontFamily resolvedFamily = _cachedCompactCustomFontFamily!;
+            CompactTitleText.FontFamily = resolvedFamily;
+            CompactTitleMarqueeClone.FontFamily = resolvedFamily;
+            CompactSummaryText.FontFamily = resolvedFamily;
+            CompactSummaryMarqueeClone.FontFamily = resolvedFamily;
+        }
+
+        var titleWeight = metrics.FontWeightName switch
+        {
+            CapsuleOptionKinds.CompactFontWeightMedium => FontWeights.Medium,
+            CapsuleOptionKinds.CompactFontWeightSemiBold => FontWeights.SemiBold,
+            _ => FontWeights.Normal
+        };
+
+        CompactTitleText.FontSize = metrics.TitleFontSize;
+        CompactTitleText.FontWeight = titleWeight;
+        CompactTitleMarqueeClone.FontSize = metrics.TitleFontSize;
+        CompactTitleMarqueeClone.FontWeight = titleWeight;
+
+        CompactSummaryText.FontSize = metrics.SummaryFontSize;
+        CompactSummaryMarqueeClone.FontSize = metrics.SummaryFontSize;
+
+        CompactTitleViewport.Height = metrics.TitleViewportHeight;
+        CompactSummaryViewport.Height = metrics.SummaryViewportHeight;
+
+        if (IsLoaded && _isCollapsed)
+        {
+            QueueCompactTextViewportWidths();
+        }
+    }
+
     private void ApplyCompactAdaptiveLayout()
     {
         if (_compactPresentation is null)
@@ -2621,45 +2742,46 @@ public sealed partial class WidgetShell : UserControl
             _compactPresentation.Thumbnail is not null;
         bool showVinyl = _compactPresentation.ShowVinyl &&
             _compactPresentation.Thumbnail is not null;
-        double identityVisualSize;
-        double identityHitSize;
-        if (showVinyl)
-        {
-            identityVisualSize = _compactWidthTier == WidgetCompactWidthTier.Narrow ? 22 : 26;
-            identityHitSize = identityVisualSize;
-        }
-        else if (useFullBleed)
-        {
-            identityVisualSize = 10;
-            identityHitSize = 10;
-        }
-        else
-        {
-            identityVisualSize = _compactWidthTier switch
-            {
-                WidgetCompactWidthTier.Narrow => 24,
-                WidgetCompactWidthTier.Wide when _usesStackedCompactText => 36,
-                _ when _usesStackedCompactText => 34,
-                _ => 28
-            };
-            identityHitSize = _compactWidthTier == WidgetCompactWidthTier.Narrow ? 34 : 40;
-        }
-        double identityBaseSize = Math.Max(identityVisualSize, identityHitSize);
-        double groupRailWidth = _groupPresentation is not null
+        bool hasThumbnail = _compactPresentation.Thumbnail is not null;
+        bool hasIconImage = _compactPresentation.IconImage is not null;
+        bool showTitleIconVisual = !hasIconImage && !useFullBleed && !hasThumbnail && !showVinyl &&
+            !string.Equals(
+                WidgetTitleIconModeNames.NormalizeMode(ResolveVisibleCompactTitleIconMode()),
+                WidgetTitleIconModeNames.Hidden,
+                StringComparison.Ordinal);
+        double groupRailWidth = _groupPresentation is not null &&
+            CompactGroupPositionRail.Visibility == Visibility.Visible
             ? CompactGroupPositionRailColumn.Width.Value
             : 0;
-        CompactIdentityHost.Width = identityBaseSize + groupRailWidth;
-        CompactIdentityHost.Height = Math.Max(identityVisualSize, identityHitSize);
+        CompactIdentityLayoutMetrics identityLayout =
+            WidgetCompactBoundsCalculator.ResolveCompactIdentityLayout(
+                _compactWidthTier,
+                _usesStackedCompactText,
+                hasThumbnail,
+                useFullBleed,
+                showVinyl,
+                hasIconImage,
+                showTitleIconVisual,
+                groupRailWidth);
+        CompactIdentityHost.Width = identityLayout.IdentityHostWidth;
+        CompactIdentityHost.Height = identityLayout.IdentityHostHeight;
+        CompactIdentityHost.Visibility = identityLayout.ShowIdentityHost
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        CompactIdentityVisualHost.Visibility = identityLayout.ShowIdentityVisualHost
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         CompactIdentityVisualHost.Opacity = (showVinyl || !useFullBleed) ? 1 : 0;
         if (!_isCompactTransitionActive)
         {
             CompactIdentityHost.Opacity = 1;
         }
-        CompactThumbnailHost.Width = identityVisualSize;
-        CompactThumbnailHost.Height = identityVisualSize;
-        CompactTitleIcon.IconSize = _compactWidthTier == WidgetCompactWidthTier.Narrow
-            ? 13
-            : _usesStackedCompactText ? 16 : 14;
+        CompactThumbnailHost.Width = identityLayout.IdentityVisualSize;
+        CompactThumbnailHost.Height = identityLayout.IdentityVisualSize;
+        CompactTitleIcon.IconSize = identityLayout.TitleIconSize;
+        CompactTextContainer.Margin = new Thickness(identityLayout.TextLeftMargin, 0, 6, 0);
+        CompactMoveHitRegion.Margin = new Thickness(-8, 0, 0, 0);
+        CompactMoveHitRegion.Width = identityLayout.MoveHitRegionWidth;
 
         bool showPrimaryAction = _compactPresentation.ShowPrimaryAction &&
             _compactWidthTier != WidgetCompactWidthTier.Narrow;
@@ -2834,11 +2956,20 @@ public sealed partial class WidgetShell : UserControl
         double width)
     {
         double safeWidth = Math.Max(1, width);
+        double safeHeight = Math.Max(1, viewport.Height);
         viewport.Width = safeWidth;
-        viewport.Clip = new RectangleGeometry
+        var rect = new Windows.Foundation.Rect(0, 0, safeWidth, safeHeight);
+        if (viewport.Clip is RectangleGeometry existingClip)
         {
-            Rect = new Windows.Foundation.Rect(0, 0, safeWidth, Math.Max(1, viewport.Height))
-        };
+            if (existingClip.Rect != rect)
+            {
+                existingClip.Rect = rect;
+            }
+        }
+        else
+        {
+            viewport.Clip = new RectangleGeometry { Rect = rect };
+        }
         textBlock.Width = safeWidth;
         textBlock.TextTrimming = TextTrimming.CharacterEllipsis;
     }
@@ -2944,9 +3075,9 @@ public sealed partial class WidgetShell : UserControl
             if (isFullBleed)
             {
                 CompactLiveIndicatorHost.Height = 3;
-                CompactLiveTrack.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
+                CompactLiveTrack.Background = s_fullBleedTrackBrush;
                 CompactLiveTrack.Opacity = 1;
-                CompactLiveProgress.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xE6, 0xFF, 0xFF, 0xFF));
+                CompactLiveProgress.Background = s_fullBleedFillBrush;
             }
             else
             {
@@ -2964,7 +3095,7 @@ public sealed partial class WidgetShell : UserControl
                 if (isAttention)
                 {
                     // Overdue: orange
-                    CompactLiveProgress.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xF9, 0x73, 0x16));
+                    CompactLiveProgress.Background = s_attentionProgressBrush;
                 }
                 else
                 {
@@ -2974,7 +3105,16 @@ public sealed partial class WidgetShell : UserControl
                     byte r = (byte)(accent.R + (0x22 - accent.R) * value);
                     byte g = (byte)(accent.G + (0xC5 - accent.G) * value);
                     byte b = (byte)(accent.B + (0x5E - accent.B) * value);
-                    CompactLiveProgress.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, r, g, b));
+                    Color targetColor = Color.FromArgb(0xFF, r, g, b);
+                    if (_compactTodoProgressBrush is null)
+                    {
+                        _compactTodoProgressBrush = new SolidColorBrush(targetColor);
+                    }
+                    else if (_compactTodoProgressBrush.Color != targetColor)
+                    {
+                        _compactTodoProgressBrush.Color = targetColor;
+                    }
+                    CompactLiveProgress.Background = _compactTodoProgressBrush;
                 }
             }
             else if (!isFullBleed)
@@ -3006,9 +3146,9 @@ public sealed partial class WidgetShell : UserControl
             if (isFullBleed)
             {
                 CompactLiveIndicatorHost.Height = 3;
-                CompactLiveTrack.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
+                CompactLiveTrack.Background = s_fullBleedTrackBrush;
                 CompactLiveTrack.Opacity = 1;
-                CompactLiveProgress.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xE6, 0xFF, 0xFF, 0xFF));
+                CompactLiveProgress.Background = s_fullBleedFillBrush;
                 CompactLiveProgress.Opacity = 0.9;
             }
             else
@@ -3061,10 +3201,8 @@ public sealed partial class WidgetShell : UserControl
         if (isFullBleed)
         {
             // On a cover-art background, invert to white so the bar stays visible.
-            CompactMusicProgressFill.Background = new SolidColorBrush(
-                Windows.UI.Color.FromArgb(0xE6, 0xFF, 0xFF, 0xFF));
-            CompactMusicProgressTrack.Background = new SolidColorBrush(
-                Windows.UI.Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF));
+            CompactMusicProgressFill.Background = s_fullBleedFillBrush;
+            CompactMusicProgressTrack.Background = s_fullBleedTrackBrush;
         }
         else
         {
@@ -4050,17 +4188,17 @@ public sealed partial class WidgetShell : UserControl
 
     private static double MeasureCompactTextWidth(TextBlock source)
     {
-        var probe = new TextBlock
+        TextBlock probe = s_compactTextMeasureProbe ??= new TextBlock
         {
-            Text = source.Text,
-            FontFamily = source.FontFamily,
-            FontSize = source.FontSize,
-            FontStretch = source.FontStretch,
-            FontStyle = source.FontStyle,
-            FontWeight = source.FontWeight,
-            CharacterSpacing = source.CharacterSpacing,
             TextWrapping = TextWrapping.NoWrap
         };
+        probe.Text = source.Text;
+        probe.FontFamily = source.FontFamily;
+        probe.FontSize = source.FontSize;
+        probe.FontStretch = source.FontStretch;
+        probe.FontStyle = source.FontStyle;
+        probe.FontWeight = source.FontWeight;
+        probe.CharacterSpacing = source.CharacterSpacing;
         probe.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
         return probe.DesiredSize.Width;
     }
@@ -4194,6 +4332,7 @@ public sealed partial class WidgetShell : UserControl
         _titleBarPadding = WidgetTitleBarMetricsCalculator.CreateOuterPadding(chromeMode);
         TitleIcon.IconSize = metrics.TitleIconSize;
         TitleText.FontSize = metrics.TitleTextSize;
+        ApplyCompactTypography();
         GroupTitleSwitcher.IconSize = metrics.TitleIconSize;
 
         WidgetTitleBarMetricsCalculator.ApplyActionButton(PositionLockButton, metrics);
@@ -4367,6 +4506,7 @@ public sealed partial class WidgetShell : UserControl
         {
             shell.Bindings.Update();
             shell.UpdateCompactGroupPositionRail(shell._groupPresentation);
+            shell.SyncCompactTitleIconModeAndLayout();
         }
     }
 

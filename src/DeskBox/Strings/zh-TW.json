@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "解鎖尺寸",
   "Widget.Shell.Collapse": "收起小工具",
   "Todo.Due.Custom.Time": "自訂時間",
-  "Todo.Detail.EditStep": "編輯步驟"
+  "Todo.Detail.EditStep": "編輯步驟",
+  "Settings.Capsule.Font.Title": "膠囊字體",
+  "Settings.Capsule.Font.Description": "自訂膠囊收合狀態下的文字字體；預設跟隨方格字體",
+  "Settings.Capsule.Font.Default": "跟隨預設字體",
+  "Settings.Capsule.FontSize.Title": "膠囊字級",
+  "Settings.Capsule.FontSize.Description": "調整膠囊狀態下標題與摘要字級，預設跟隨展開標題大小",
+  "Settings.Capsule.FontSize.Auto": "跟隨標題大小",
+  "Settings.Capsule.FontWeight.Title": "膠囊字重",
+  "Settings.Capsule.FontWeight.Description": "調整膠囊標題的字體粗細，預設與展開標題一致",
+  "Settings.Capsule.FontWeight.Normal": "標準",
+  "Settings.Capsule.FontWeight.Medium": "中等",
+  "Settings.Capsule.FontWeight.SemiBold": "半粗"
 }

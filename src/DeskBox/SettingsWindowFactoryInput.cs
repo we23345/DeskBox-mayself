@@ -49,6 +49,7 @@ internal sealed record SettingsWindowFactoryInput(
         string T(string key) => LocalizationService.T(key);
         string Format(string key, object[] args) => LocalizationService.Format(key, args);
         void ReportError(string prefix, Exception ex) => App.Log($"{prefix} {ex}");
+        var systemFonts = new SystemFontCatalogService();
 
         return new SettingsWindow(
             SettingsService, ThemeService, LocalizationService,
@@ -84,7 +85,11 @@ internal sealed record SettingsWindowFactoryInput(
             SearchSettings,
             BackupCommands,
             new DeskBox.Features.Appearance.AppearanceSettingsViewModel(AppearanceSettings, T),
-            new DeskBox.Features.Capsule.CapsuleSettingsViewModel(CapsuleSettings, T, Format),
+            new DeskBox.Features.Capsule.CapsuleSettingsViewModel(
+                CapsuleSettings,
+                T,
+                Format,
+                systemFonts.GetFontFamilies),
             new DeskBox.Features.Interaction.InteractionSettingsViewModel(InteractionSettings, T),
             new DeskBox.Features.FileDisplay.FileDisplaySettingsViewModel(FileDisplaySettings),
             new DeskBox.Features.FileStack.FileStackSettingsViewModel(FileStackSettings, T, Format),

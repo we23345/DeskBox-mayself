@@ -100,6 +100,46 @@
                     controls:SettingsComboBox.Value="{Binding ContentMode, Mode=TwoWay}" />
             </toolkit:SettingsCard>
 
+            <toolkit:SettingsCard
+                HorizontalContentAlignment="Right"
+                svc:Localized.DescriptionKey="Settings.Capsule.Font.Description"
+                svc:Localized.HeaderKey="Settings.Capsule.Font.Title">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8D2;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox svc:Localized.AutomationNameKey="Settings.Capsule.Font.Title"
+                    MaxDropDownHeight="360"
+                    MinWidth="{StaticResource SettingsControlMinWidth}"
+                    ItemsSource="{Binding AvailableCompactFontFamilyOptions}"
+                    controls:SettingsComboBox.Value="{Binding CompactFontFamily, Mode=TwoWay}" />
+            </toolkit:SettingsCard>
+
+            <toolkit:SettingsCard
+                HorizontalContentAlignment="Right"
+                svc:Localized.DescriptionKey="Settings.Capsule.FontSize.Description"
+                svc:Localized.HeaderKey="Settings.Capsule.FontSize.Title">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8E9;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox svc:Localized.AutomationNameKey="Settings.Capsule.FontSize.Title"
+                    MinWidth="{StaticResource SettingsControlMinWidth}"
+                    ItemsSource="{Binding AvailableCompactFontSizeOptions}"
+                    controls:SettingsComboBox.Value="{Binding CompactFontSizeOption, Mode=TwoWay}" />
+            </toolkit:SettingsCard>
+
+            <toolkit:SettingsCard
+                HorizontalContentAlignment="Right"
+                svc:Localized.DescriptionKey="Settings.Capsule.FontWeight.Description"
+                svc:Localized.HeaderKey="Settings.Capsule.FontWeight.Title">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8D3;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <ComboBox svc:Localized.AutomationNameKey="Settings.Capsule.FontWeight.Title"
+                    MinWidth="{StaticResource SettingsControlMinWidth}"
+                    ItemsSource="{Binding AvailableCompactFontWeightOptions}"
+                    controls:SettingsComboBox.Value="{Binding CompactFontWeight, Mode=TwoWay}" />
+            </toolkit:SettingsCard>
+
             <toolkit:SettingsExpander
                 IsExpanded="False"
                 svc:Localized.DescriptionKey="Settings.Capsule.Arrangement.Description"

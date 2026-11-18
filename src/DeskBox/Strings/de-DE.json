@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "Größe entsperren",
   "Widget.Shell.Collapse": "Widget zusammenklappen",
   "Todo.Due.Custom.Time": "Benutzerdefinierte Uhrzeit",
-  "Todo.Detail.EditStep": "Schritt bearbeiten"
+  "Todo.Detail.EditStep": "Schritt bearbeiten",
+  "Settings.Capsule.Font.Title": "Kapselschriftart",
+  "Settings.Capsule.Font.Description": "Schriftart für eingeklappte Widgets im Kapselmodus anpassen",
+  "Settings.Capsule.Font.Default": "Standardschriftart verwenden",
+  "Settings.Capsule.FontSize.Title": "Kapselschriftgröße",
+  "Settings.Capsule.FontSize.Description": "Schriftgröße im Kapselmodus anpassen oder automatisch an den erweiterten Titel angleichen",
+  "Settings.Capsule.FontSize.Auto": "An Titelgröße anpassen",
+  "Settings.Capsule.FontWeight.Title": "Kapselschriftstärke",
+  "Settings.Capsule.FontWeight.Description": "Schriftstärke für eingeklappte Kapseltitel wählen",
+  "Settings.Capsule.FontWeight.Normal": "Normal",
+  "Settings.Capsule.FontWeight.Medium": "Mittel",
+  "Settings.Capsule.FontWeight.SemiBold": "Halbfett"
 }

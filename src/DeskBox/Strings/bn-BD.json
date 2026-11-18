@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "আকার আনলক করুন",
   "Widget.Shell.Collapse": "উইজেট সঙ্কুচিত করুন",
   "Todo.Due.Custom.Time": "কাস্টম সময়",
-  "Todo.Detail.EditStep": "ধাপ সম্পাদনা করুন"
+  "Todo.Detail.EditStep": "ধাপ সম্পাদনা করুন",
+  "Settings.Capsule.Font.Title": "ক্যাপসুল ফন্ট",
+  "Settings.Capsule.Font.Description": "উইজেট ক্যাপসুল মোডে ভাঁজ করা থাকলে ব্যবহৃত ফন্ট কাস্টমাইজ করুন",
+  "Settings.Capsule.Font.Default": "ডিফল্ট ফন্ট অনুসরণ করুন",
+  "Settings.Capsule.FontSize.Title": "ক্যাপসুল ফন্টের আকার",
+  "Settings.Capsule.FontSize.Description": "ক্যাপসুলের লেখার আকার পরিবর্তন করুন অথবা স্বয়ংক্রিয়ভাবে প্রসারিত শিরোনামের আকারের সাথে মিলিয়ে নিন",
+  "Settings.Capsule.FontSize.Auto": "শিরোনামের আকার অনুসরণ করুন",
+  "Settings.Capsule.FontWeight.Title": "ক্যাপসুল ফন্টের পুরুত্ব",
+  "Settings.Capsule.FontWeight.Description": "সংকুচিত ক্যাপসুল শিরোনামের জন্য ফন্টের পুরুত্ব বেছে নিন",
+  "Settings.Capsule.FontWeight.Normal": "সাধারণ",
+  "Settings.Capsule.FontWeight.Medium": "মাঝারি",
+  "Settings.Capsule.FontWeight.SemiBold": "অর্ধ-গাঢ়"
 }

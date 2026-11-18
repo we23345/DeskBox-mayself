@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "Unlock size",
   "Widget.Shell.Collapse": "Collapse widget",
   "Todo.Due.Custom.Time": "Custom time",
-  "Todo.Detail.EditStep": "Edit step"
+  "Todo.Detail.EditStep": "Edit step",
+  "Settings.Capsule.Font.Title": "Capsule font",
+  "Settings.Capsule.Font.Description": "Customize the font family used when a widget is collapsed into a capsule",
+  "Settings.Capsule.Font.Default": "Follow default font",
+  "Settings.Capsule.FontSize.Title": "Capsule font size",
+  "Settings.Capsule.FontSize.Description": "Adjust the capsule text size or match the expanded widget title automatically",
+  "Settings.Capsule.FontSize.Auto": "Match title size",
+  "Settings.Capsule.FontWeight.Title": "Capsule font weight",
+  "Settings.Capsule.FontWeight.Description": "Choose the stroke weight for collapsed capsule titles",
+  "Settings.Capsule.FontWeight.Normal": "Regular",
+  "Settings.Capsule.FontWeight.Medium": "Medium",
+  "Settings.Capsule.FontWeight.SemiBold": "Semi-bold"
 }

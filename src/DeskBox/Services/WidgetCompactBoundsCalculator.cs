@@ -1,3 +1,4 @@
+using DeskBox.Contracts;
 using DeskBox.Models;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
@@ -10,6 +11,25 @@ public enum WidgetCompactWidthTier
     Standard,
     Wide
 }
+
+public readonly record struct CompactTypographyMetrics(
+    string FontFamilyName,
+    double TitleFontSize,
+    double SummaryFontSize,
+    string FontWeightName,
+    double TitleViewportHeight,
+    double SummaryViewportHeight);
+
+public readonly record struct CompactIdentityLayoutMetrics(
+    double IdentityVisualSize,
+    double IdentityHitSize,
+    double IdentityHostWidth,
+    double IdentityHostHeight,
+    bool ShowIdentityHost,
+    bool ShowIdentityVisualHost,
+    double TitleIconSize,
+    double TextLeftMargin,
+    double MoveHitRegionWidth);
 
 public static class WidgetCompactBoundsCalculator
 {
@@ -247,6 +267,101 @@ public static class WidgetCompactBoundsCalculator
         return width < WideWidthThreshold
             ? WidgetCompactWidthTier.Standard
             : WidgetCompactWidthTier.Wide;
+    }
+
+    public static CompactTypographyMetrics ResolveCompactTypography(
+        string? configuredFontFamily,
+        double configuredFontSize,
+        string? configuredFontWeight,
+        double expandedTitleFontSize)
+    {
+        string familyName = CapsuleOptionKinds.NormalizeCompactFontFamily(configuredFontFamily);
+        double normalizedSize = CapsuleOptionKinds.NormalizeCompactFontSize(configuredFontSize);
+        double fallbackExpandedSize = double.IsFinite(expandedTitleFontSize) && expandedTitleFontSize > 0
+            ? expandedTitleFontSize
+            : 14d;
+        double titleFontSize = normalizedSize > 0 ? normalizedSize : fallbackExpandedSize;
+        double summaryFontSize = Math.Clamp(Math.Round(titleFontSize - 2, 1), 10, 18);
+        string weightName = CapsuleOptionKinds.NormalizeCompactFontWeight(configuredFontWeight);
+        double titleViewportHeight = Math.Max(18, Math.Ceiling(titleFontSize * 1.45));
+        double summaryViewportHeight = Math.Max(17, Math.Ceiling(summaryFontSize * 1.45));
+        return new CompactTypographyMetrics(
+            familyName,
+            titleFontSize,
+            summaryFontSize,
+            weightName,
+            titleViewportHeight,
+            summaryViewportHeight);
+    }
+
+    public static CompactIdentityLayoutMetrics ResolveCompactIdentityLayout(
+        WidgetCompactWidthTier widthTier,
+        bool usesStackedText,
+        bool hasThumbnail,
+        bool useFullBleed,
+        bool showVinyl,
+        bool hasIconImage,
+        bool showTitleIconVisual,
+        double groupRailWidth)
+    {
+        bool hasIdentityVisual = showVinyl || hasIconImage || (hasThumbnail && !useFullBleed) || showTitleIconVisual;
+        double identityVisualSize;
+        double identityHitSize;
+        if (showVinyl)
+        {
+            identityVisualSize = widthTier == WidgetCompactWidthTier.Narrow ? 22 : 26;
+            identityHitSize = identityVisualSize;
+        }
+        else if (useFullBleed)
+        {
+            identityVisualSize = 10;
+            identityHitSize = 10;
+        }
+        else if (!hasIdentityVisual)
+        {
+            identityVisualSize = 0;
+            identityHitSize = 0;
+        }
+        else
+        {
+            identityVisualSize = widthTier switch
+            {
+                WidgetCompactWidthTier.Narrow => 24,
+                WidgetCompactWidthTier.Wide when usesStackedText => 36,
+                _ when usesStackedText => 34,
+                _ => 28
+            };
+            identityHitSize = hasThumbnail && !useFullBleed
+                ? (widthTier == WidgetCompactWidthTier.Narrow ? 34 : 40)
+                : (widthTier == WidgetCompactWidthTier.Narrow ? 26 : 30);
+        }
+
+        double safeRailWidth = double.IsFinite(groupRailWidth) && groupRailWidth > 0 ? groupRailWidth : 0;
+        double identityBaseSize = Math.Max(identityVisualSize, identityHitSize);
+        double identityHostWidth = identityBaseSize + safeRailWidth;
+        double identityHostHeight = identityHostWidth > 0
+            ? Math.Max(identityBaseSize, 20)
+            : 0;
+        bool showIdentityHost = identityHostWidth > 0;
+        bool showIdentityVisualHost = hasIdentityVisual || useFullBleed;
+        double titleIconSize = widthTier == WidgetCompactWidthTier.Narrow
+            ? 13
+            : usesStackedText ? 16 : 14;
+        double textLeftMargin = identityHostWidth > 0 ? 4 : 6;
+        double moveHitRegionWidth = identityHostWidth > 0
+            ? Math.Max(26, 8 + identityHostWidth)
+            : 14;
+
+        return new CompactIdentityLayoutMetrics(
+            identityVisualSize,
+            identityHitSize,
+            identityHostWidth,
+            identityHostHeight,
+            showIdentityHost,
+            showIdentityVisualHost,
+            titleIconSize,
+            textLeftMargin,
+            moveHitRegionWidth);
     }
 
     public static double ResolveOuterCornerRadius(string? cornerPreference)

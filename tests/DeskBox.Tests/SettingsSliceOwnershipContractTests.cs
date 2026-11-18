@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using DeskBox.Models;
@@ -48,7 +48,9 @@ public sealed class SettingsSliceOwnershipContractTests
         // and lastRunVersion.
         // +2 = autoDownloadUpdates + showUpdateToastNotification (background
         // auto-download and update toasts).
-        Assert.Equal(243, FacadeProperties.Length);
+        // +3 = widgetCompactFontFamily + widgetCompactFontSize +
+        // widgetCompactFontWeight (capsule typography customization).
+        Assert.Equal(246, FacadeProperties.Length);
 
         foreach (PropertyInfo facade in FacadeProperties)
         {

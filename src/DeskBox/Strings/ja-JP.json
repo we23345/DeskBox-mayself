@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "サイズのロック解除",
   "Widget.Shell.Collapse": "ウィジェットを折りたたむ",
   "Todo.Due.Custom.Time": "カスタム時刻",
-  "Todo.Detail.EditStep": "ステップを編集"
+  "Todo.Detail.EditStep": "ステップを編集",
+  "Settings.Capsule.Font.Title": "カプセルフォント",
+  "Settings.Capsule.Font.Description": "カプセル状態に折りたたんだときのフォントを設定します",
+  "Settings.Capsule.Font.Default": "デフォルトフォントに従う",
+  "Settings.Capsule.FontSize.Title": "カプセル文字サイズ",
+  "Settings.Capsule.FontSize.Description": "カプセル表示時の文字サイズを調整するか、展開時のタイトルサイズに合わせます",
+  "Settings.Capsule.FontSize.Auto": "タイトルサイズに合わせる",
+  "Settings.Capsule.FontWeight.Title": "カプセルフォントの太さ",
+  "Settings.Capsule.FontWeight.Description": "折りたたみ時のカプセルタイトルの太さを選択します",
+  "Settings.Capsule.FontWeight.Normal": "標準",
+  "Settings.Capsule.FontWeight.Medium": "中",
+  "Settings.Capsule.FontWeight.SemiBold": "準太字"
 }

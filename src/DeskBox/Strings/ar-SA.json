@@ -2991,5 +2991,16 @@
   "Widget.UnlockSize": "إلغاء قفل الحجم",
   "Widget.Shell.Collapse": "طي القطعة",
   "Todo.Due.Custom.Time": "وقت مخصص",
-  "Todo.Detail.EditStep": "تحرير الخطوة"
+  "Todo.Detail.EditStep": "تحرير الخطوة",
+  "Settings.Capsule.Font.Title": "خط الكبسولة",
+  "Settings.Capsule.Font.Description": "تخصيص نوع الخط المستخدم عند طي الأداة في وضع الكبسولة",
+  "Settings.Capsule.Font.Default": "اتّباع الخط الافتراضي",
+  "Settings.Capsule.FontSize.Title": "حجم خط الكبسولة",
+  "Settings.Capsule.FontSize.Description": "ضبط حجم نص الكبسولة أو مطابقة حجم عنوان الأداة الموسّعة تلقائياً",
+  "Settings.Capsule.FontSize.Auto": "مطابقة حجم العنوان",
+  "Settings.Capsule.FontWeight.Title": "سُمك خط الكبسولة",
+  "Settings.Capsule.FontWeight.Description": "اختيار سُمك الخط لعناوين الكبسولة المطوية",
+  "Settings.Capsule.FontWeight.Normal": "عادي",
+  "Settings.Capsule.FontWeight.Medium": "متوسط",
+  "Settings.Capsule.FontWeight.SemiBold": "شبه عريض"
 }
